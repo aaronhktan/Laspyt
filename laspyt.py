@@ -3,7 +3,7 @@
 
 from optparse import OptionParser
 from configparser import RawConfigParser
-from http.client import HTTPConnection
+from http.client import HTTPSConnection
 from xml.etree import ElementTree
 from os import path, mkdir
 from shutil import move
@@ -39,9 +39,7 @@ def loadOptions():
   p.add_option('--save', '-s', help='save current options as default, but doesn\'t make scrobbling', action="store_true", default=False)
   p.add_option('--noop', '-n', help='simulate, but do not actually scrobble or clear', action='store_true', default=False)
   OPTIONS, args = p.parse_args()
-  if OPTIONS.password:
-    OPTIONS.password = md5(OPTIONS.password.encode('utf-8')).hexdigest()
-  else:
+  if not OPTIONS.password:
     OPTIONS.password = CONFIG.get('DEFAULT', 'password')
   OPTIONS.timezone = int(OPTIONS.timezone)
   if (OPTIONS.timezone > 14 or OPTIONS.timezone < -12):
@@ -155,13 +153,13 @@ def makeQueryBody(params):
   api_sig = md5(api_sig.encode('utf-8')).hexdigest()
   q['api_sig'] = api_sig
   q = urlencode(q)
+  print(q)
   return q
 
 def createSession():
   global SESSION_KEY
-  token = md5((OPTIONS.user + OPTIONS.password).encode('utf-8')).hexdigest()
-  conn = HTTPConnection("ws.audioscrobbler.com")
-  conn.request("GET", "/2.0/?%s" % makeQueryBody({'authToken': token, 'method': 'auth.getMobileSession', 'username': OPTIONS.user}))
+  conn = HTTPSConnection("ws.audioscrobbler.com")
+  conn.request("POST", "/2.0/?%s" % makeQueryBody({'password': OPTIONS.password, 'method': 'auth.getMobileSession', 'username': OPTIONS.user}))
   try:
     response = conn.getresponse()
     if (response.status != 200 and response.status != 403):
