@@ -180,7 +180,7 @@ def submitTrack(track):
     return False
   error = False
   if (track[5] == "L"):
-    conn = HTTPConnection("ws.audioscrobbler.com")
+    conn = HTTPSConnection("ws.audioscrobbler.com")
     try:
       body = makeQueryBody({'track[0]': track[2], 'timestamp[0]': str(int(track[6])+TIMEDELAY), 'artist[0]': track[0], 'album[0]': track[1], 'trackNumber[0]': track[3], 'duration[0]': track[4], 'sk': SESSION_KEY, 'method': 'track.scrobble'})
       conn.request("POST", "/2.0/", body, {"Content-type": "application/x-www-form-urlencoded"})
